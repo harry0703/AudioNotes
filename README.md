@@ -38,16 +38,15 @@ ollama pull qwen2:7b
 
 有两种部署方式，一种是使用 Docker 部署，另一种是本地部署
 
-#### Docker 部署（推荐）
+#### Docker部署（推荐）🐳
 
 ```bash
-### Docker 部署
-```bash
-curl https://github.com/harry0703/AudioNotes/raw/main/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://github.com/harry0703/AudioNotes/raw/main/docker-compose.yml -o docker-compose.yml
 docker-compose up
 ```
+docker 启动后，访问 http://localhost:15433/
 
-#### 本地部署
+#### 本地部署 📦
 
 需要有可访问的 postgresql 数据库
 
@@ -64,3 +63,4 @@ pip install -r requirements.txt
 ```bash
 chainlit run main.py
 ```
+服务启动后，访问 http://localhost:8000/
