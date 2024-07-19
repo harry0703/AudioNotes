@@ -12,6 +12,11 @@ from app.services.ollama import chat_with_ollama
 
 from app.utils import utils
 
+# load environment variables
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logger.remove()
 logger.add(f"{utils.storage_dir('logs')}/log.log", rotation="500 MB")
 
