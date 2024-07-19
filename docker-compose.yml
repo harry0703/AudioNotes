@@ -1,0 +1,49 @@
+services:
+  webui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: harryliu888/audio-notes
+    container_name: audio_notes_webui
+    ports:
+      - 15433:15433
+    volumes:
+      - ./modelscope:/root/.cache/modelscope
+      - ./storage:/app/storage
+    restart: always
+    networks:
+      - audio_notes
+    environment:
+      # 登录账号
+      - USERNAME=admin
+      - PASSWORD=admin
+      # 数据库配置(需要与下面pg服务的配置一致)
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=audio_notes
+      - POSTGRES_HOST=pg
+      # ollama配置
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+      - OLLAMA_MODEL=qwen2:7b
+      - OLLAMA_API_KEY=ollama
+    depends_on:
+      - pg
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+  pg:
+    image: pgvector/pgvector:pg16
+    container_name: audio_notes_pg
+    restart: always
+    ports:
+      - 15432:5432
+    networks:
+      - audio_notes
+    environment:
+      # 这里的配置只有首次运行生效。修改后，重启镜像是不会生效的。需要把持久化数据删除再重启，才有效果
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=audio_notes
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+networks:
+  audio_notes:
