@@ -46,6 +46,8 @@ docker-compose up
 ```
 docker 启动后，访问 http://localhost:15433/
 
+> 登录账号为 admin，密码为 admin （可以在 docker-compose.yml 文件里面修改）
+
 #### 本地部署 📦
 
 需要有可访问的 postgresql 数据库
@@ -64,3 +66,5 @@ pip install -r requirements.txt
 chainlit run main.py
 ```
 服务启动后，访问 http://localhost:8000/
+
+> 登录账号为 admin，密码为 admin （可以在 .env 文件里面修改）
