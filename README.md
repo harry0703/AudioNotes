@@ -68,3 +68,34 @@ chainlit run main.py
 服务启动后，访问 http://localhost:8000/
 
 > 登录账号为 admin，密码为 admin （可以在 .env 文件里面修改）
+
+## REST API（可选）
+
+除了网页界面，还提供了一个 REST 接口，方便脚本或其他系统调用。
+
+出于安全考虑，接口默认关闭。在 `.env`（或 docker-compose 的 environment）中配置 `AUDIONOTES_API_TOKEN` 后启用：
+
+```bash
+AUDIONOTES_API_TOKEN=your-api-token
+```
+
+上传音视频文件，返回识别结果和整理好的笔记：
+
+```bash
+curl -X POST http://localhost:8000/api/v1/transcriptions \
+  -H "Authorization: Bearer your-api-token" \
+  -F "file=@/path/to/audio.mp3" \
+  -F "with_notes=true"
+```
+
+返回示例：
+
+```json
+{
+  "filename": "audio.mp3",
+  "transcript": "识别出来的文字内容...",
+  "notes": "# 结构化笔记\n..."
+}
+```
+
+> `with_notes=false` 时只做语音识别，不调用大模型整理笔记。

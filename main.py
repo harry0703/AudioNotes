@@ -22,6 +22,9 @@ logger.add(f"{utils.storage_dir('logs')}/log.log", rotation="500 MB")
 
 data_layer.init()
 
+# 注册 REST API 路由（需要配置 AUDIONOTES_API_TOKEN 才会启用）
+from app import api  # noqa: F401, E402
+
 
 @cl.password_auth_callback
 def password_auth_callback(username: str, password: str):
