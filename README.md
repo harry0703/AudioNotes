@@ -1,5 +1,7 @@
 # AudioNotes
 
+[English](README-en.md) | **简体中文**
+
 ## 基于 FunASR 和 Qwen2 构建的音视频转结构化笔记系统
 
 能够快速提取音视频的内容，并且调用大模型进行整理，成为一份结构化的markdown笔记，方便快速阅读
