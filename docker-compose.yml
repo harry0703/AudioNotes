@@ -14,6 +14,8 @@ services:
       # 登录账号
       - USERNAME=admin
       - PASSWORD=admin
+      # chainlit 登录认证需要的 JWT 密钥，建议修改成随机字符串（可以用 `chainlit create-secret` 生成）
+      - CHAINLIT_AUTH_SECRET=change-me-to-a-random-secret
       # 数据库配置(需要与下面pg服务的配置一致)
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password

@@ -1,4 +1,11 @@
-chainlit
+# chainlit must stay on 1.1.x: main.py relies on APIs that were removed/moved
+# in chainlit >= 1.2 (top-level ThreadDict/AudioChunk, on_audio_chunk/on_audio_end,
+# chainlit.data.sql_alchemy). 1.1.402 also ships the zh-CN translation.
+chainlit==1.1.402
+# chainlit 1.1.x is incompatible with pydantic >= 2.10 (dataclass validation errors)
+pydantic<2.10
+# funasr / torchaudio stack is not compatible with numpy 2.x
+numpy<2.0
 loguru
 funasr
 faster_whisper
