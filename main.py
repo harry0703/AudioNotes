@@ -92,7 +92,8 @@ async def on_audio_end(elements: list[ElementBased]):
     with open(file_path, "wb") as f:
         f.write(audio_buffer.read())
 
-    result = funasr.transcribe(file_path)
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, funasr.transcribe, file_path)
     await cl.Message(
         content=result,
         type="user_message",
