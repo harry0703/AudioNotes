@@ -25,8 +25,10 @@ data_layer.init()
 
 @cl.password_auth_callback
 def password_auth_callback(username: str, password: str):
-    u = os.getenv("USERNAME", "admin")
-    p = os.getenv("PASSWORD", "admin")
+    # Windows 系统自带 USERNAME 环境变量（当前系统用户名），会覆盖 .env 里的配置，
+    # 导致登录失败。优先读取 AUDIONOTES_USERNAME / AUDIONOTES_PASSWORD。
+    u = os.getenv("AUDIONOTES_USERNAME") or os.getenv("USERNAME", "admin")
+    p = os.getenv("AUDIONOTES_PASSWORD") or os.getenv("PASSWORD", "admin")
     if (username, password) == (u, p):
         return cl.User(
             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
