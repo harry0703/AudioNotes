@@ -1,0 +1,20 @@
+# NVIDIA GPU 加速的 compose 覆盖配置（可选）
+#
+# 前置条件：
+#   1. 宿主机已安装 NVIDIA 显卡驱动（nvidia-smi 可正常执行）
+#   2. 已安装 NVIDIA Container Toolkit
+#      https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+#
+# 使用方法（与 docker-compose.yml 叠加使用）：
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+# 说明：不使用 GPU 也可以正常运行（FunASR 支持 CPU 推理），GPU 仅用于加速识别。
+services:
+  webui:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

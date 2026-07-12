@@ -48,6 +48,17 @@ docker 启动后，访问 http://localhost:15433/
 
 > 登录账号为 admin，密码为 admin （可以在 docker-compose.yml 文件里面修改）
 
+##### 启用 NVIDIA GPU 加速（可选）
+
+不使用 GPU 也可以正常运行（FunASR 支持 CPU 推理），GPU 仅用于加速识别。
+
+需要宿主机已安装 NVIDIA 显卡驱动和 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)，然后叠加 GPU 配置启动：
+
+```bash
+curl -fsSL https://github.com/harry0703/AudioNotes/raw/main/docker-compose.gpu.yml -o docker-compose.gpu.yml
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
 #### 本地部署 📦
 
 需要有可访问的 postgresql 数据库
