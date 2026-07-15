@@ -67,7 +67,12 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
                 f"{function_name} 必须捕获异常并向用户反馈",
             )
 
-        self.assertIn("处理失败，请确认文件格式", source)
+        # 上传工作流必须区分 ASR 与 Ollama 故障。否则文字已经识别成功时，通用错误仍会让
+        # 用户重复检查音频格式，并且无法判断应启动 Ollama 还是重新上传文件。
+        self.assertIn("识别失败，请确认文件格式和 ASR 模型", source)
+        self.assertIn("文字识别已完成，但笔记整理失败", source)
+        self.assertIn("failed to transcribe uploaded media", source)
+        self.assertIn("failed to summarize transcription", source)
         self.assertIn("录音识别失败", source)
         self.assertIn("回答生成失败", source)
         self.assertIn("hmac.compare_digest", source)

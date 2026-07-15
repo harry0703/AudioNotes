@@ -127,23 +127,33 @@ async def on_chat_start():
     msg = cl.Message(content="")
 
     try:
-        # 上传流程只有一次识别和一次整理，直接按执行顺序展开可以减少无复用价值的嵌套函数，
-        # 同时让异常处理边界更直观；stream_token 本身已满足摘要服务的异步回调接口。
         await msg.stream_token(f"文件 《{file.name}》 上传成功, 识别中...\n")
         asr_result = await funasr.transcribe_async(file.path)
-        await msg.stream_token(f"## 识别结果 \n{asr_result}\n")
-        await msg.stream_token("## 整理笔记\n\n")
-        await summarize_with_ollama(asr_result, callback=msg.stream_token)
     except NoSpeechDetectedError:
         # 静音、背景噪声或无有效人声不是服务故障，单独提示用户可避免误导其检查 Ollama。
         logger.warning("workflow :: uploaded media contains no detectable speech")
         await msg.stream_token("\n\n> 未识别到有效语音，请检查音量和录音内容后重试。")
     except Exception:
-        # 服务层已经记录模型和耗时信息，这里只记录处理阶段，不写入文件名或转写正文。
-        logger.exception("workflow :: failed to process uploaded media")
+        # 识别阶段失败时只提示音频和 ASR，避免用户在尚未调用 Ollama 时错误排查大模型。
+        # 服务层已经记录格式、模型和耗时，这里只记录工作流阶段，不写入文件名或转写正文。
+        logger.exception("workflow :: failed to transcribe uploaded media")
         await msg.stream_token(
-            "\n\n> 处理失败，请确认文件格式、ASR 模型和 Ollama 服务可用后重试。"
+            "\n\n> 识别失败，请确认文件格式和 ASR 模型可用后重试。"
         )
+    else:
+        await msg.stream_token(f"## 识别结果 \n{asr_result}\n")
+        await msg.stream_token("## 整理笔记\n\n")
+        try:
+            # ASR 成功后再建立独立的 Ollama 异常边界。这样即使本地模型未启动、模型未拉取
+            # 或资源不足返回 5xx，已经得到的文字稿仍会保留，用户也能直接定位失败组件。
+            await summarize_with_ollama(asr_result, callback=msg.stream_token)
+        except Exception:
+            # Ollama 服务层已记录地址、模型和耗时；这里不记录转写正文，避免隐私内容进入日志。
+            logger.exception("workflow :: failed to summarize transcription")
+            await msg.stream_token(
+                "\n\n> 文字识别已完成，但笔记整理失败。请确认 Ollama 已启动，"
+                "并已安装 `.env` 中配置的模型后重试。"
+            )
     finally:
         # 即使识别或整理失败，也要发送已经生成的进度和错误提示，避免前端一直停在加载状态。
         await msg.send()
