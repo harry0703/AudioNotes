@@ -507,6 +507,10 @@ class DataLayerTestCase(unittest.TestCase):
                 step_columns = {
                     row[1] for row in connection.execute('PRAGMA table_info("steps")')
                 }
+                feedback_columns = {
+                    row[1]
+                    for row in connection.execute('PRAGMA table_info("feedbacks")')
+                }
                 journal_mode = connection.execute("PRAGMA journal_mode").fetchone()[0]
 
             self.assertEqual(
@@ -516,6 +520,13 @@ class DataLayerTestCase(unittest.TestCase):
             self.assertTrue(
                 {"command", "defaultOpen", "autoCollapse", "modes"}.issubset(
                     step_columns
+                )
+            )
+            # Chainlit 会在摘要或问答完成后把任务反馈连同 threadId 写入数据库。旧版表结构
+            # 缺少该列会让 Ollama 已成功返回后仍显示任务失败，因此必须把它作为回归约束。
+            self.assertTrue(
+                {"id", "forId", "threadId", "value", "comment"}.issubset(
+                    feedback_columns
                 )
             )
             self.assertEqual(journal_mode, "wal")
