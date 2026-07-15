@@ -73,6 +73,11 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
         self.assertIn("文字识别已完成，但笔记整理失败", source)
         self.assertIn("failed to transcribe uploaded media", source)
         self.assertIn("failed to summarize transcription", source)
+        # 上传文件必须显式转换为 Chainlit 媒体元素，才能在当前消息和历史记录中提供播放器。
+        self.assertIn("def create_media_preview", source)
+        self.assertIn("return cl.Audio(**element_options)", source)
+        self.assertIn("return cl.Video(**element_options)", source)
+        self.assertIn("elements=[create_media_preview(file)]", source)
         self.assertIn("录音识别失败", source)
         self.assertIn("回答生成失败", source)
         self.assertIn("hmac.compare_digest", source)
@@ -83,7 +88,8 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
         self.assertIn("recording ended without a buffer", source)
         self.assertIn('cl.user_session.set("audio_mime_type", None)', source)
         self.assertNotIn("请识别这段音频文件并且整理成结构化的笔记", source)
-        self.assertIn("from chainlit.types import InputAudioChunk", source)
+        self.assertIn("InputAudioChunk", source)
+        self.assertIn("from chainlit.types import AskFileResponse", source)
         self.assertNotIn("cl.AudioChunk", source)
         self.assertIn("@cl.data_layer", source)
         data_layer_source = (

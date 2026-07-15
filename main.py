@@ -5,7 +5,7 @@ import uuid
 from io import BytesIO
 
 import chainlit as cl
-from chainlit.types import InputAudioChunk
+from chainlit.types import AskFileResponse, InputAudioChunk
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -90,6 +90,29 @@ def get_max_upload_size_mb() -> int:
         return 2048
 
 
+def create_media_preview(file: AskFileResponse) -> cl.Audio | cl.Video:
+    """为已上传的音频或视频创建可持久化的内嵌播放器。"""
+
+    mime_type = file.type.split(";", 1)[0].strip().lower()
+    element_options = {
+        "name": file.name,
+        "path": file.path,
+        "mime": mime_type or None,
+        "display": "inline",
+    }
+    if mime_type.startswith("video/"):
+        return cl.Video(**element_options)
+
+    if not mime_type.startswith("audio/"):
+        # 浏览器偶尔会为少见容器格式返回 application/octet-stream。上传入口已经限制为
+        # 音视频文件，此时按音频播放器回退，同时记录 MIME 类型以便定位无法预览的格式。
+        logger.warning(
+            "upload :: unexpected media MIME type; using audio preview, mime_type: {}",
+            mime_type or "unknown",
+        )
+    return cl.Audio(**element_options)
+
+
 @cl.password_auth_callback
 def password_auth_callback(username: str, password: str):
     expected_username = os.getenv("USERNAME", "admin")
@@ -124,7 +147,9 @@ async def on_chat_start():
         files = await msg.send()
     file = files[0]
 
-    msg = cl.Message(content="")
+    # 预览元素与识别结果放在同一条消息中。Chainlit 数据层会在首次发送消息时把临时上传
+    # 复制到本地持久化目录，因此刷新页面或重新打开历史会话后仍可以播放原始媒体。
+    msg = cl.Message(content="", elements=[create_media_preview(file)])
 
     try:
         await msg.stream_token(f"文件 《{file.name}》 上传成功, 识别中...\n")
