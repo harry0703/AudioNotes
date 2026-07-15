@@ -91,6 +91,21 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
         # 容器内 localhost 健康检查无法发现端口只绑定回环地址的问题，因此固定检查启动参数。
         self.assertIn('"--host", "0.0.0.0"', dockerfile)
 
+    def test_chainlit_welcome_has_simplified_chinese_translation(self):
+        dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
+        default_welcome = (PROJECT_ROOT / "chainlit.md").read_text(encoding="utf-8")
+        chinese_welcome = (PROJECT_ROOT / "chainlit_zh-CN.md").read_text(
+            encoding="utf-8"
+        )
+
+        # Chainlit 2.11 按 chainlit_<语言>.md 查找本地化欢迎页。只保留默认文件虽然不影响
+        # 识别功能，但每次中文浏览器访问都会记录翻译缺失警告，并展示无关的框架介绍。
+        self.assertIn("chainlit_zh-CN.md", dockerfile)
+        self.assertIn("AudioNotes", default_welcome)
+        self.assertIn("AudioNotes", chinese_welcome)
+        self.assertIn("默认保存在当前电脑", chinese_welcome)
+        self.assertNotIn("Welcome to Chainlit", default_welcome)
+
     def test_compose_only_exposes_web_service_to_localhost(self):
         compose = (PROJECT_ROOT / "docker-compose.yml").read_text(encoding="utf-8")
         gpu_compose = (PROJECT_ROOT / "docker-compose.gpu.yml").read_text(

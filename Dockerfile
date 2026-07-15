@@ -27,9 +27,10 @@ RUN pip install --no-cache-dir \
         torch==2.11.0 torchaudio==2.11.0 \
     && pip install --no-cache-dir -r requirements.txt
 
-# 运行镜像只需要入口、业务代码和许可证。显式复制白名单可以避免测试、Workflow、
-# Compose 及未来新增的开发文件意外进入镜像，同时让生产文件边界保持清晰。
-COPY main.py LICENSE ./
+# 运行镜像只需要入口、业务代码、欢迎页和许可证。简体中文欢迎页必须与默认页一起复制，
+# 否则中文浏览器访问时 Chainlit 会回退到英文默认内容并记录误导性的翻译缺失警告。
+# 显式复制白名单也能避免测试、Workflow 及未来新增的开发文件进入生产镜像。
+COPY main.py chainlit.md chainlit_zh-CN.md LICENSE ./
 COPY app ./app
 
 # 生产容器不启用 -w 热重载，避免额外的文件监控和子进程开销。Chainlit 2.11 默认只监听
