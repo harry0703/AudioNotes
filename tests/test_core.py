@@ -80,6 +80,11 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
         self.assertNotIn("请识别这段音频文件并且整理成结构化的笔记", source)
         self.assertIn("from chainlit.types import InputAudioChunk", source)
         self.assertNotIn("cl.AudioChunk", source)
+        self.assertIn("@cl.data_layer", source)
+        data_layer_source = (
+            PROJECT_ROOT / "app/services/data_layer.py"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("cl_data._data_layer", data_layer_source)
 
     def test_container_listens_on_external_interface(self):
         dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
@@ -458,7 +463,7 @@ class DataLayerTestCase(unittest.TestCase):
                 "storage_dir",
                 return_value=str(storage_directory),
             ):
-                module.init()
+                layer = module.init()
 
             database_path = storage_directory / "audionotes.db"
             self.assertTrue(database_path.is_file())
@@ -490,8 +495,8 @@ class DataLayerTestCase(unittest.TestCase):
             )
             self.assertEqual(journal_mode, "wal")
 
-        # init 已经把 SQLite 适配层注册给 Chainlit，直接复用该实例继续验证结构化字段转换。
-        layer = module.cl_data._data_layer
+        # init 只负责构造并返回数据层，由 main.py 中的公开装饰器交给 Chainlit 管理生命周期。
+        # 测试直接复用返回实例，既覆盖初始化结果，也避免依赖框架私有全局变量。
         self.assertIsInstance(layer, module.SQLiteDataLayer)
         layer.query_result = [
             {

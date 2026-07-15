@@ -66,7 +66,12 @@ if os.getenv("CHAINLIT_AUTH_SECRET") == (
         "auth :: development JWT secret is active; change CHAINLIT_AUTH_SECRET before deployment"
     )
 
-data_layer.init()
+@cl.data_layer
+def get_data_layer():
+    # Chainlit 2.11 已弃用直接修改 chainlit.data._data_layer 的初始化方式。
+    # 使用公开装饰器后，框架会在首次需要持久化时创建唯一实例，并负责后续关闭连接池；
+    # 这既避免依赖私有内部变量，也让未来升级 Chainlit 时保持稳定的生命周期边界。
+    return data_layer.init()
 
 
 def get_max_upload_size_mb() -> int:

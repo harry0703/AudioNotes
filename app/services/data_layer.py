@@ -6,7 +6,6 @@ from contextlib import closing
 from typing import Any
 from urllib.parse import quote
 
-import chainlit.data as cl_data
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
 from loguru import logger
@@ -306,10 +305,10 @@ CREATE INDEX IF NOT EXISTS "idx_feedbacks_forId" ON feedbacks("forId");
         raise
 
 
-def init() -> None:
+def init() -> SQLiteDataLayer:
     database_path = get_database_path()
     _initialize_database(database_path)
-    cl_data._data_layer = SQLiteDataLayer(
+    layer = SQLiteDataLayer(
         database_path=database_path,
         storage_provider=StorageClient(),
     )
@@ -317,3 +316,4 @@ def init() -> None:
         "database :: SQLite initialized, file: {}",
         os.path.basename(database_path),
     )
+    return layer
