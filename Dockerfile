@@ -1,5 +1,5 @@
 # Python 3.12 仍处于安全维护期，Bookworm 也比已经接近生命周期末期的 Bullseye 更适合作为生产基线。
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # Set the working directory in the container
 WORKDIR /app
