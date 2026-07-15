@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  # Python 与模型生态变化较快，每周检查一次固定版本，更新后交由 CI 验证兼容性。
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # 同时跟踪 Python、PostgreSQL 等基础镜像的安全与维护版本。
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3

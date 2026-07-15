@@ -1,0 +1,52 @@
+services:
+  webui:
+    image: ${AUDIO_NOTES_IMAGE:-ghcr.io/harry0703/audio-notes:latest}
+    ports:
+      # 个人本机使用默认只监听回环地址，避免同一局域网中的其他设备直接访问笔记和音视频。
+      - 127.0.0.1:15433:15433
+    volumes:
+      - ./modelscope:/root/.cache/modelscope
+      - ./storage:/app/storage
+      # Chainlit 原生通过 /public 路由读取附件；继续使用 storage/uploads 作为宿主机持久化目录。
+      - ./storage/uploads:/app/public/uploads
+    # 使用轻量 init 进程转发停止信号并回收 ffmpeg 等子进程，避免容器长期运行后产生僵尸进程。
+    init: true
+    # Web 服务只需要普通网络和文件访问，不依赖 Linux capabilities；禁止提权可缩小镜像漏洞影响范围。
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # ASR 或 LLM 请求结束时可能仍有工作线程，给进程留出释放文件和连接的时间。
+    stop_grace_period: 30s
+    restart: always
+    environment:
+      # 登录账号
+      - USERNAME=${USERNAME:-admin}
+      - PASSWORD=${PASSWORD:-admin}
+      # Chainlit 2.11 的密码认证必须使用固定密钥签发会话令牌；生产部署必须通过 .env 覆盖默认值。
+      - CHAINLIT_AUTH_SECRET=${CHAINLIT_AUTH_SECRET:-local-development-secret-change-before-deployment}
+      # 日志级别，可通过同目录的 .env 文件覆盖
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # FunASR 配置，设备留空时由框架自动选择
+      - ASR_MODEL=${ASR_MODEL:-FunAudioLLM/Fun-ASR-Nano-2512}
+      - ASR_DEVICE=${ASR_DEVICE:-}
+      - ASR_HOTWORDS=${ASR_HOTWORDS:-}
+      - ASR_ENABLE_SPEAKER_DIARIZATION=${ASR_ENABLE_SPEAKER_DIARIZATION:-false}
+      # 单个音视频文件的上传上限，单位 MB
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-2048}
+      # ollama配置
+      - OLLAMA_BASE_URL=${OLLAMA_DOCKER_BASE_URL:-http://host.docker.internal:11434/v1}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3.5:2b}
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-ollama}
+      - OLLAMA_TIMEOUT_SECONDS=${OLLAMA_TIMEOUT_SECONDS:-600}
+      - OLLAMA_MAX_RETRIES=${OLLAMA_MAX_RETRIES:-1}
+      - OLLAMA_SUMMARY_CHUNK_SIZE=${OLLAMA_SUMMARY_CHUNK_SIZE:-6000}
+    healthcheck:
+      # Chainlit 2.x 原生提供 /health；使用 Python 标准库探测，无需为镜像额外安装 curl。
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:15433/health', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'

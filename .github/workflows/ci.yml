@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 验证任务只读取仓库内容，不授予写入代码、Issue 或软件包的权限。
+permissions:
+  contents: read
+
+# 同一分支出现新提交时取消旧任务，避免依赖更新期间重复占用执行资源。
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install validation tools
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Run static checks
+        run: ruff check .
+
+      # 核心测试通过假模型隔离 FunASR 和 Ollama，并使用临时 SQLite 文件覆盖持久化流程，
+      # 不下载大模型也能验证关键业务与真实数据库结构。
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check Python syntax
+        run: python -m compileall -q main.py app tests
+
+      # CVE-2025-3000 的公开范围仅包含 PyTorch 2.6.0 和本地 torch.jit.script 调用；
+      # 当前项目使用 2.11.0 且没有该调用。CVE-2026-59890 仅影响 macOS 上构建源码包时
+      # MANIFEST 排除规则的 Unicode 规范化；运行镜像不构建不受信任的源码包，并且
+      # PyTorch 2.11 要求 setuptools<82，暂时无法安装修复该问题的 83.0.0。
+      # 两项均保留显式忽略，其他漏洞仍会使任务失败。
+      - name: Audit Python dependencies
+        run: >-
+          pip-audit --requirement requirements.txt
+          --ignore-vuln CVE-2025-3000
+          --ignore-vuln CVE-2026-59890
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet

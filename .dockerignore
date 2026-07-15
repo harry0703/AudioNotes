@@ -1,0 +1,38 @@
+# Docker 构建只需要应用源码和依赖清单，不应复制 Git 历史与本地开发环境。
+.git/
+.gitignore
+.dockerignore
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.github/
+tests/
+requirements-dev.txt
+
+# 本地密钥不能进入镜像层，否则即使后续删除仍可从历史层中恢复。
+.env
+.env.*
+!.env.example
+
+# 用户数据、数据库和模型缓存通过运行时卷挂载，不能写入构建上下文。
+# 这样既能避免隐私数据泄露，也能显著减少 Docker 构建上下文和镜像体积。
+storage/
+public/uploads/
+postgresql/
+modelscope/
+
+# 文档素材和本地编排文件不参与应用运行，避免复制进生产镜像。
+docs/
+README.md
+docker-compose.yml
+.env.example
+.DS_Store

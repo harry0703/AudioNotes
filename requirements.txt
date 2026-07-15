@@ -1,0 +1,16 @@
+# Web 界面与日志
+chainlit==2.11.1
+loguru==0.7.3
+
+# 语音识别。torchaudio 会安装与其版本匹配的 torch
+funasr==1.3.14
+modelscope==1.38.1
+torch==2.11.0
+torchaudio==2.11.0
+
+# Ollama OpenAI 兼容客户端
+openai==2.45.0
+
+# Chainlit SQLite 数据层
+aiosqlite==0.22.1
+sqlalchemy[asyncio]==2.0.51

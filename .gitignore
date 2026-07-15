@@ -1,0 +1,31 @@
+# 本地环境变量通常包含账号、密码和服务地址，只保留可公开的配置示例。
+.env
+.env.*
+!.env.example
+
+# Python 运行、测试和构建过程中生成的文件不属于项目源码。
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# 这些目录包含用户上传内容、运行日志、数据库文件和模型缓存。
+# 数据体积可能很大，并且可能包含隐私信息，必须与 Git 源码仓库隔离。
+storage/
+public/uploads/
+postgresql/
+modelscope/
+
+# 编辑器和操作系统生成的本地文件与项目功能无关。
+.DS_Store
+.idea/
+.vscode/
