@@ -55,6 +55,8 @@ jobs:
       - name: Validate container configuration
         run: |
           docker compose config --quiet
+          # 发布前同时验证可选 NVIDIA 配置能与默认编排正确合并。
+          docker compose -f docker-compose.yml -f docker-compose.gpu.yml config --quiet
           docker build --check .
 
   publish:

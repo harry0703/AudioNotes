@@ -140,3 +140,14 @@ ollama pull qwen3.5:2b
 如果处理长音频时页面中断或服务重启，请增加 Docker Desktop 的内存配额。实测 8GB 可能不足，推荐使用 16GB。
 
 如果电脑由多人共用，请打开 `.env` 文件并修改 `USERNAME` 和 `PASSWORD`，然后重新启动服务。
+
+Linux 电脑如配有 NVIDIA 显卡，并且已经安装 NVIDIA 驱动和 Container Toolkit，可以使用可选配置启用 GPU 识别加速：
+
+```bash
+git clone https://github.com/harry0703/AudioNotes.git
+cd AudioNotes
+cp .env.example .env
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
+```
+
+默认快速体验仍使用 CPU 镜像，不需要 NVIDIA 显卡。首次构建 GPU 镜像需要下载较大的 CUDA 依赖。

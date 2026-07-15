@@ -55,4 +55,7 @@ jobs:
           --ignore-vuln CVE-2026-59890
 
       - name: Validate Docker Compose
-        run: docker compose config --quiet
+        run: |
+          docker compose config --quiet
+          # GPU 覆盖文件无需真实显卡即可完成结构合并校验，避免高级配置长期无人使用后失效。
+          docker compose -f docker-compose.yml -f docker-compose.gpu.yml config --quiet

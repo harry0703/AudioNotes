@@ -93,11 +93,21 @@ class MainWorkflowStructureTestCase(unittest.TestCase):
 
     def test_compose_only_exposes_web_service_to_localhost(self):
         compose = (PROJECT_ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+        gpu_compose = (PROJECT_ROOT / "docker-compose.gpu.yml").read_text(
+            encoding="utf-8"
+        )
         environment = (PROJECT_ROOT / ".env.example").read_text(encoding="utf-8")
         requirements = (PROJECT_ROOT / "requirements.txt").read_text(encoding="utf-8")
         # Chainlit 在容器内部需要监听所有接口供端口映射使用，但宿主机只应绑定回环地址。
         # 这样既不影响本机访问，也能避免个人笔记在默认配置下直接暴露给同一局域网。
         self.assertIn("127.0.0.1:15433:15433", compose)
+
+        # 默认配置必须继续兼容普通 CPU 电脑；NVIDIA 相关参数只放在可选覆盖文件中。
+        # 同时约束 CUDA 软件源和显式设备选择，避免只暴露 GPU 却仍安装 CPU 版 PyTorch。
+        self.assertNotIn("gpus:", compose)
+        self.assertIn("gpus: all", gpu_compose)
+        self.assertIn("https://download.pytorch.org/whl/cu128", gpu_compose)
+        self.assertIn("ASR_DEVICE: ${ASR_DEVICE:-cuda:0}", gpu_compose)
 
         # 个人本机应用只需要内嵌 SQLite。这里同时约束编排、公开配置和 Python 驱动，
         # 防止未来调整数据层时只删除部分 PostgreSQL 配置，导致用户仍需启动无用服务。

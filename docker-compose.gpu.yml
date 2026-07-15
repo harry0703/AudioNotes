@@ -1,0 +1,17 @@
+services:
+  webui:
+    # 默认 GHCR 镜像使用 CPU 版 PyTorch，以控制下载体积并兼容没有 NVIDIA 显卡的电脑。
+    # GPU 用户通过此覆盖文件在本机重新构建镜像，避免维护另一套容易过期的应用镜像。
+    image: audio-notes:cuda
+    build:
+      context: .
+      args:
+        # PyTorch 2.11 官方同时提供多个 CUDA 版本；默认选择兼容范围较广的 CUDA 12.8。
+        # 驱动或硬件有特殊要求时，可在命令前设置 PYTORCH_INDEX_URL 覆盖该软件源。
+        PYTORCH_INDEX_URL: ${PYTORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}
+    # Docker Compose 会通过 NVIDIA Container Toolkit 把宿主机 GPU 暴露给容器。
+    # 该配置只存在于可选覆盖文件中，因此普通 CPU 用户不会受到任何影响。
+    gpus: all
+    environment:
+      # 明确使用第一块 NVIDIA GPU，避免 FunASR 在不同运行环境中自动选择到 CPU。
+      ASR_DEVICE: ${ASR_DEVICE:-cuda:0}
