@@ -98,6 +98,8 @@ python -m chainlit run main.py --host 127.0.0.1 --port 15433
 
 默认组合优先兼顾中文识别质量和普通电脑的资源占用。识别结果仍可能受到录音质量、环境噪声、口音和多人重叠说话影响，重要内容请结合原音频核对。
 
+如需识别更多语言，打开 `.env`，将 `ASR_MODEL` 改为 `FunAudioLLM/Fun-ASR-MLT-Nano-2512`，然后重新启动服务。默认模型不会自动改变，当前页面也不会在运行期间切换模型。
+
 ## 数据管理
 
 使用 Docker 时，上传文件、FunASR 模型缓存、日志和对话历史都保存在创建的 `audionotes` 文件夹中。使用源码时，个人数据保存在项目的 `storage` 文件夹中，FunASR 模型保存在本机模型缓存中。Ollama 模型由 Ollama 单独管理。
