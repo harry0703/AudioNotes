@@ -214,6 +214,26 @@ class ASRServiceTestCase(unittest.TestCase):
         )
         self.assertNotIn("batch_size_s", model.generate_options)
 
+    def test_mlt_nano_uses_fun_asr_nano_inference_options(self):
+        environment = {
+            "ASR_MODEL": "FunAudioLLM/Fun-ASR-MLT-Nano-2512",
+            "ASR_HOTWORDS": "AudioNotes 魔搭",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            service = self.module.FunASR()
+            self.assertEqual(service.transcribe("example.wav"), "识别成功")
+
+        model = self.model_instances[-1]
+        self.assertNotIn("punc_model", model.options)
+        self.assertEqual(model.generate_options["batch_size"], 1)
+        self.assertEqual(model.generate_options["cache"], {})
+        self.assertEqual(
+            model.generate_options["hotwords"],
+            ["AudioNotes", "魔搭"],
+        )
+        self.assertNotIn("batch_size_s", model.generate_options)
+        self.assertNotIn("hotword", model.generate_options)
+
     def test_srt_uses_one_based_index_timestamp_and_speaker(self):
         class FakeModel:
             def generate(self, **options):

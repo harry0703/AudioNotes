@@ -7,6 +7,7 @@ from loguru import logger
 
 
 DEFAULT_ASR_MODEL = "FunAudioLLM/Fun-ASR-Nano-2512"
+FUN_ASR_NANO_MODEL_MARKERS = ("fun-asr-nano", "fun-asr-mlt-nano")
 
 
 def _get_speaker_diarization_enabled() -> bool:
@@ -42,7 +43,9 @@ class FunASR:
             model_name = DEFAULT_ASR_MODEL
         device = os.getenv("ASR_DEVICE", "").strip()
         self.__hotwords = os.getenv("ASR_HOTWORDS", "").strip()
-        self.__uses_fun_asr_nano = "fun-asr-nano" in model_name.lower()
+        self.__uses_fun_asr_nano = any(
+            marker in model_name.lower() for marker in FUN_ASR_NANO_MODEL_MARKERS
+        )
         speaker_diarization_enabled = _get_speaker_diarization_enabled()
 
         # 设备留空时沿用 FunASR 的自动选择逻辑，便于同一份配置运行在 CPU、CUDA 等环境。
