@@ -126,7 +126,16 @@ class FunASR:
         if self.__uses_fun_asr_nano:
             # LLM-ASR 模型按文件批处理并需要独立 cache；它的热词接口接收字符串列表。
             # 与传统模型分开组装参数，可保留用户通过 ASR_MODEL 回退 Paraformer 的兼容性。
-            generate_options.update({"cache": {}, "batch_size": 1})
+            #
+            # Nano 底层使用语言模型生成文本。显式关闭采样与 MLT 官方示例保持一致，可避免依赖
+            # 默认值变化后引入额外随机性；未指定语言时仍保留模型自动识别多语言的现有行为。
+            generate_options.update(
+                {
+                    "cache": {},
+                    "batch_size": 1,
+                    "llm_kwargs": {"do_sample": False},
+                }
+            )
             if self.__hotwords:
                 generate_options["hotwords"] = self.__hotwords.split()
         else:
@@ -164,7 +173,16 @@ class FunASR:
             perf_counter() - started_at,
         )
         if output_type == "srt":
-            sentences = res[0]["sentence_info"]
+            sentences = res[0].get("sentence_info")
+            if not isinstance(sentences, list):
+                # Fun-ASR MLT Nano 当前不提供生成 SRT 所需的时间戳。这里在服务边界返回明确错误，
+                # 避免缺少 sentence_info 时泄漏无上下文的 KeyError，便于调用方提示用户改用 TXT。
+                logger.error(
+                    "funasr :: cannot generate subtitles, output_type: {}, "
+                    "reason: sentence timestamps unavailable",
+                    output_type,
+                )
+                raise RuntimeError("当前 ASR 模型不支持 SRT 输出")
             subtitles = []
 
             for idx, sentence in enumerate(sentences, start=1):

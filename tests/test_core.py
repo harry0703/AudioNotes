@@ -209,6 +209,10 @@ class ASRServiceTestCase(unittest.TestCase):
         self.assertEqual(model.generate_options["batch_size"], 1)
         self.assertEqual(model.generate_options["cache"], {})
         self.assertEqual(
+            model.generate_options["llm_kwargs"],
+            {"do_sample": False},
+        )
+        self.assertEqual(
             model.generate_options["hotwords"],
             ["AudioNotes", "魔搭"],
         )
@@ -227,6 +231,10 @@ class ASRServiceTestCase(unittest.TestCase):
         self.assertNotIn("punc_model", model.options)
         self.assertEqual(model.generate_options["batch_size"], 1)
         self.assertEqual(model.generate_options["cache"], {})
+        self.assertEqual(
+            model.generate_options["llm_kwargs"],
+            {"do_sample": False},
+        )
         self.assertEqual(
             model.generate_options["hotwords"],
             ["AudioNotes", "魔搭"],
@@ -253,6 +261,19 @@ class ASRServiceTestCase(unittest.TestCase):
             "2\n01:02:03,004 --> 01:02:05,006\n世界\n"
         )
         self.assertEqual(result, expected)
+
+    def test_srt_reports_missing_timestamp_support(self):
+        class ModelWithoutTimestamps:
+            def generate(self, **options):
+                return [{"text": "识别成功"}]
+
+        service = self.module.FunASR()
+        service._FunASR__model = ModelWithoutTimestamps()
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "当前 ASR 模型不支持 SRT 输出",
+        ):
+            service.transcribe("example.wav", output_type="srt")
 
     def test_empty_and_invalid_model_responses_are_distinguished(self):
         class EmptySpeechModel:
