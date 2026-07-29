@@ -3,7 +3,7 @@ chainlit==2.11.1
 loguru==0.7.3
 
 # 语音识别。torchaudio 会安装与其版本匹配的 torch
-funasr==1.3.22
+funasr==1.3.30
 modelscope==1.38.1
 torch==2.11.0
 torchaudio==2.11.0
