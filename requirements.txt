@@ -9,7 +9,7 @@ torch==2.11.0
 torchaudio==2.11.0
 
 # Ollama OpenAI 兼容客户端
-openai==2.46.0
+openai==2.50.0
 
 # Chainlit SQLite 数据层
 aiosqlite==0.22.1
