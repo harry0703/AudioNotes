@@ -13,4 +13,4 @@ openai==2.46.0
 
 # Chainlit SQLite 数据层
 aiosqlite==0.22.1
-sqlalchemy[asyncio]==2.0.51
+sqlalchemy[asyncio]==2.0.52
